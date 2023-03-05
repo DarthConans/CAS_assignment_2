@@ -49,7 +49,12 @@ def check_equivalents():
     assert len(amino_combos) == len(set(amino_combos)) == (4 * 4 * 4)
 
 
+PERMUTATION_DICT = {}
+
+
 def permute_coding_sequence(coding_sequence):
+    if coding_sequence in PERMUTATION_DICT.keys():
+        return PERMUTATION_DICT[coding_sequence]
     permutations = []
     for i in range(len(coding_sequence)):
         before = coding_sequence[0:i]
@@ -58,12 +63,19 @@ def permute_coding_sequence(coding_sequence):
         for new_char in AMINO_CHARS:
             if new_char != char:
                 permutations.append(before + new_char + after)
+    PERMUTATION_DICT[coding_sequence] = permutations
     return permutations
 
 
+CODED_FOR_DICT = {}
+
+
 def get_coded_for(sequence):
+    if sequence in CODED_FOR_DICT.keys():
+        return CODED_FOR_DICT[sequence]
     for seq in EQUIVALENT_SEQUENCES:
         if sequence in seq[0]:
+            CODED_FOR_DICT[sequence] = seq[1]
             return seq[1]
 
 
@@ -71,7 +83,7 @@ def is_neutral(original_sequence, new_sequence):
     return get_coded_for(original_sequence) == get_coded_for(new_sequence)
 
 
-def get_all_equivalents(original_sequence, new_sequences):
+def extract_all_equivalents(original_sequence, new_sequences):
     original_coded_for = get_coded_for(original_sequence)
     return [seq for seq in new_sequences if get_coded_for(seq) == original_coded_for]
 
@@ -84,7 +96,7 @@ def get_new_genomes_and_neutral_genomes(genetic_sequence):
         seq = genetic_sequence[i: i + 3]
         after = genetic_sequence[i + 3:]
         new_seqs = permute_coding_sequence(seq)
-        neutral_seqs = get_all_equivalents(seq, new_seqs)
+        neutral_seqs = extract_all_equivalents(seq, new_seqs)
         this_round = [before + new_seq + after for new_seq in new_seqs]
         this_round_neutral = [before + neutral_seq + after for neutral_seq in neutral_seqs]
         new_sequences.extend(this_round)
@@ -98,6 +110,6 @@ if __name__ == "__main__":
     print(generate_genome(9))
     check_equivalents()
     perms = permute_coding_sequence("GUU")
-    neutrals = get_all_equivalents("GUU", perms)
+    equivalents = extract_all_equivalents("GUU", perms)
     all_new, neutrals = get_new_genomes_and_neutral_genomes("GUUCAAGCA")
     print("krewl")
