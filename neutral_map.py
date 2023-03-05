@@ -3,29 +3,45 @@ import random as rand
 AMINO_CHARS = ["A", "C", "G", "U"]
 
 EQUIVALENT_SEQUENCES = [
-    ({"GUU", "GUC", "GUA", "GUG"}, "val"),
-    ({"GCU", "GCC", "GCA", "GCG"}, "ala"),
-    ({"GAU", "GAC"}, "asp"),
-    ({"GAA", "GAG"}, "glu"),
-    ({"GGU", "GGC", "GGA", "GGG"}, "gly"),
-    ({"UUU", "UUC"}, "phe"),
-    ({"UUA", "UUG", "CUU", "CUC", "CUA", "CUG"}, "leu"),
-    ({"UCU", "UCC", "UCA", "UCG", "AGU", "AGC"}, "ser"),
-    ({"UAU", "UAC"}, "tyr"),
-    ({"UAA", "UAG", "UGA"}, "stop"),
-    ({"UGU", "UGC"}, "cys"),
-    ({"UGG"}, "trp"),
-    ({"CCU", "CCC", "CCA", "CCG"}, "pro"),
-    ({"CAU", "CAC"}, "his"),
-    ({"CAA", "CAG"}, "gln"),
-    ({"CGU", "CGC", "CGA", "CGG", "AGA", "AGG"}, "arg"),
-    ({"AUU", "AUC", "AUA"}, "ile"),
-    ({"AUG"}, "met"),
-    ({"ACU", "ACC", "ACA", "ACG"}, "thr"),
-    ({"AAU", "AAC"}, "asn"),
-    ({"AAA", "AAG"}, "lys"),
+    ({"GUU", "GUC", "GUA", "GUG"}, "V"),
+    ({"GCU", "GCC", "GCA", "GCG"}, "A"),
+    ({"GAU", "GAC"}, "D"),
+    ({"GAA", "GAG"}, "E"),
+    ({"GGU", "GGC", "GGA", "GGG"}, "G"),
+    ({"UUU", "UUC"}, "F"),
+    ({"UUA", "UUG", "CUU", "CUC", "CUA", "CUG"}, "L"),
+    ({"UCU", "UCC", "UCA", "UCG", "AGU", "AGC"}, "S"),
+    ({"UAU", "UAC"}, "Y"),
+    ({"UAA", "UAG", "UGA"}, "X"),
+    ({"UGU", "UGC"}, "C"),
+    ({"UGG"}, "W"),
+    ({"CCU", "CCC", "CCA", "CCG"}, "P"),
+    ({"CAU", "CAC"}, "H"),
+    ({"CAA", "CAG"}, "Q"),
+    ({"CGU", "CGC", "CGA", "CGG", "AGA", "AGG"}, "R"),
+    ({"AUU", "AUC", "AUA"}, "I"),
+    ({"AUG"}, "M"),
+    ({"ACU", "ACC", "ACA", "ACG"}, "T"),
+    ({"AAU", "AAC"}, "N"),
+    ({"AAA", "AAG"}, "K"),
 ]
 
+def load_sequence():
+    with open("data/spike_protein_genes.txt", "r") as f:
+        untranslated = f.read().replace(" ","").replace("\n", "").strip().upper()
+    return tranlate_proteints_to_base_pairs(untranslated)
+
+def tranlate_proteints_to_base_pairs(proteins):
+    ret = []
+    for protein in proteins:
+        found = 0
+        for base_pair, prot in EQUIVALENT_SEQUENCES:
+            if prot == protein:
+                ret.append(list(base_pair)[0])
+                found = 1
+        if not found:
+            raise ValueError(f"PROTEIN {protein} DIDN'T MATCH")
+    return "".join(ret)
 
 def break_into_coding_seqs(overall_genetic_sequences):
     # looping till length l
@@ -112,4 +128,18 @@ if __name__ == "__main__":
     perms = permute_coding_sequence("GUU")
     equivalents = extract_all_equivalents("GUU", perms)
     all_new, neutrals = get_new_genomes_and_neutral_genomes("GUUCAAGCA")
-    print("krewl")
+    l = load_sequence()
+    all_new_loaded, neutrals_loaded = get_new_genomes_and_neutral_genomes(l)
+    results = [set(neutrals_loaded)]
+    for i in range(1,5):
+        loop_neuts = set()
+        j = 0
+        for sequence in results[i - 1]:
+            all_new_loaded_loop, neutrals_loaded_loop = get_new_genomes_and_neutral_genomes(sequence)
+            new = set(neutrals_loaded_loop) - results[i - 1]
+            loop_neuts.update(neutrals_loaded_loop)
+            j += 1
+            if j % 100 == 0:
+                print(j)
+        results.append(loop_neuts)
+        print("krewl")
