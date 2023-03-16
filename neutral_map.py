@@ -1,5 +1,9 @@
+import multiprocessing
 import random as rand
 import pickle as pkl
+import os
+from multiprocessing import Pool
+
 AMINO_CHARS = ["1", "2", "3", "4"]
 
 translate_dict = {
@@ -8,8 +12,11 @@ translate_dict = {
     "C": "3",
     "A": "4",
 }
+
+
 def char_to_number(char):
     return translate_dict[char]
+
 
 translate_back_dict = {
     "1": "G",
@@ -17,8 +24,11 @@ translate_back_dict = {
     "3": "C",
     "4": "A",
 }
+
+
 def number_to_char(char):
     return translate_back_dict[char]
+
 
 def translate_string_to_numbers(to_translate):
     ret = ""
@@ -26,8 +36,10 @@ def translate_string_to_numbers(to_translate):
         ret += char_to_number(char)
     return ret
 
+
 def translate_sequence_to_numbers(to_translate):
     return set([translate_string_to_numbers(trans) for trans in to_translate])
+
 
 EQUIVALENT_SEQUENCES = [
     ({"GUU", "GUC", "GUA", "GUG"}, "V"),
@@ -56,18 +68,18 @@ EQUIVALENT_SEQUENCES = [
 EQUIVALENT_SEQUENCES = [(translate_sequence_to_numbers(tup[0]), tup[1]) for tup in EQUIVALENT_SEQUENCES]
 
 
-
-
 def translate_numbers_to_string(to_translate):
     ret = ""
     for char in to_translate:
         ret += number_to_char(char)
     return ret
 
+
 def load_sequence():
     with open("data/spike_protein_genes.txt", "r") as f:
-        untranslated = f.read().replace(" ","").replace("\n", "").strip().upper()
+        untranslated = f.read().replace(" ", "").replace("\n", "").strip().upper()
     return tranlate_proteints_to_base_pairs(untranslated)
+
 
 def tranlate_proteints_to_base_pairs(proteins):
     ret = []
@@ -81,10 +93,11 @@ def tranlate_proteints_to_base_pairs(proteins):
             raise ValueError(f"PROTEIN {protein} DIDN'T MATCH")
     return "".join(ret)
 
-def break_into_coding_seqs(overall_genetic_sequences):
+
+def break_into_chunks(to_chunkify, count):
     # looping till length l
-    for i in range(0, len(overall_genetic_sequences), 3):
-        yield overall_genetic_sequences[i:i + 3]
+    for i in range(0, len(to_chunkify), count):
+        yield to_chunkify[i:i + count]
 
 
 def generate_genome(length=6):
@@ -161,25 +174,70 @@ def get_new_genomes_and_neutral_genomes(genetic_sequence):
 
 TEST_SEQUENCE = "GUUCAAGCA"
 
+
+def process_broken_up_file(file_name):
+
+    with open(f"broken_up/{file_name}", "rb") as f:
+        sequences = pkl.load(f)
+    file_neuts = set()
+    j = 0
+    total = len(sequences)
+    for sequence in sequences:
+        all_new_loaded_loop, neutrals_loaded_loop = get_new_genomes_and_neutral_genomes(sequence)
+
+        file_neuts.update(neutrals_loaded_loop)
+        j += 1
+        if j % 100 == 0:
+            print(f"{j} OUT OF {total} DONE ON FILE {file_name}. I HAVE {len(file_neuts)} RESULTS")
+    with open(f"results/hop4/{file_name}", "wb") as f:
+        pkl.dump(file_neuts, f)
+
+
+def serialize_results(neutral_mutations, hop):
+    with open(f"results/loop_neuts_hop_{hop}.pkl", "wb") as f:
+        pkl.dump(neutral_mutations, f)
+
+
 if __name__ == "__main__":
-    all_new, neutrals = get_new_genomes_and_neutral_genomes(translate_string_to_numbers("GUUCAAGCA"))
+    # all_new, neutrals = get_new_genomes_and_neutral_genomes(translate_string_to_numbers("GUUCAAGCA"))
     l = int(load_sequence())
     assert len(str(l)) == 918
-    all_new_loaded, neutrals_loaded = get_new_genomes_and_neutral_genomes(l)
-    results = [set(neutrals_loaded)]
-    with open(f"results/loop_neuts_hop_1.pkl", "wb") as f:
-        pkl.dump(set(neutrals_loaded), f)
-    for i in range(1,5):
-        loop_neuts = set()
-        j = 0
-        for sequence in results[i - 1]:
-            all_new_loaded_loop, neutrals_loaded_loop = get_new_genomes_and_neutral_genomes(sequence)
-            new = set(neutrals_loaded_loop) - results[i - 1]
-            loop_neuts.update(neutrals_loaded_loop)
-            j += 1
-            if j % 100 == 0:
-                print(j)
-        results.append(loop_neuts)
-        with open(f"results/loop_neuts_hop_{i+1}.pkl", "wb") as f:
-            pkl.dump(loop_neuts, f)
+    _, neutrals_loaded = get_new_genomes_and_neutral_genomes(l)
+    neutrals = set(neutrals_loaded)
+    serialize_results(neutrals_loaded, 1)
+    last_loop_neuts = neutrals
+    overall_neuts = neutrals
+    for i in range(2, 4):
+        this_loop_neuts = set()
+        done = 0
+        to_do = len(last_loop_neuts)
+        for l in last_loop_neuts:
+            result = get_new_genomes_and_neutral_genomes(l)
+            this_loop_neuts.update(result[1])
+            done += 1
+            if done % 100 == 0:
+                print(f"I'VE DONE {done} OF {to_do} ON HOP {i}")
+        this_loop_neuts = this_loop_neuts - overall_neuts
+        overall_neuts.update(this_loop_neuts)
+        serialize_results(this_loop_neuts, i)
+        last_loop_neuts = this_loop_neuts.copy()
         print("krewl")
+    #with open("results/loop_neuts_hop_3.pkl", "rb") as f:
+
+    #    neutrals_loaded = pkl.load(f)
+    #neutrals_loaded = list(break_into_chunks(list(neutrals_loaded), 100000))
+    #i = 0
+    #total = len(neutrals_loaded)
+    #for neutral_chunk in neutrals_loaded:
+    #    with open(f"broken_up/hop_3_{i}.pkl", "wb") as f:
+    #        pkl.dump(neutral_chunk, f)
+    #    i += 1
+    #    print(f"I'VE DUMPED {i} OF {total}")
+    # results = [set(neutrals_loaded)]
+    # with open(f"results/loop_neuts_hop_1.pkl", "wb") as f:
+    #    pkl.dump(set(neutrals_loaded), f)
+    # for i in range(1,5):
+    # loop_neuts = set()
+    files = os.listdir("broken_up")
+    sorted(files)
+    print("krewl")
