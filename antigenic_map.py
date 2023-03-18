@@ -41,6 +41,8 @@ def get_antigenically_neutral(neutral_tuples, offset = 331):
     sites_have = set([neutral_tuple[1] + offset for neutral_tuple in neutral_tuples])
     sites_wanted = binding.sites
     count_hits = len(sites_wanted.intersection(sites_have))
+    expected = len(neutral_tuples)
+    done = 0
     for neutral_tuple in neutral_tuples:
         if len(neutral_tuple) == 2:
             sites = {neutral_tuple[1] + offset}
@@ -50,6 +52,9 @@ def get_antigenically_neutral(neutral_tuples, offset = 331):
             antigentic_frame = binding.escape_per_site(sites)
             if antigenic_neutral_function(antigentic_frame):
                 ret.append(neutral_tuple)
+        done += 1
+        if done % 1000 == 0:
+            print(f"FINISHED {done} OUT OF {expected}")
     return [rets[0] for rets in ret]
 
 
