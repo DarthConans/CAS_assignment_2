@@ -1,4 +1,5 @@
 import pickle as pkl
+import math
 
 AMINO_CHARS = ["1", "2", "3", "4"]
 
@@ -75,10 +76,13 @@ def translate_sequence_to_numbers(to_translate):
     return set([translate_string_to_numbers(trans) for trans in to_translate])
 
 
-def load_sequence():
+def load_sequence(TRANSLATE_FLAG=True):
     with open("data/spike_protein_genes.txt", "r") as f:
         untranslated = f.read().replace(" ", "").replace("\n", "").strip().upper()
-    return tranlate_proteints_to_base_pairs(untranslated)
+    if TRANSLATE_FLAG:
+        return tranlate_proteints_to_base_pairs(untranslated)
+    else:
+        return untranslated
 
 
 def tranlate_proteints_to_base_pairs(proteins):
@@ -153,3 +157,34 @@ def get_new_genomes_and_neutral_genomes(genetic_sequence):
 def serialize_results(neutral_mutations, hop):
     with open(f"results/loop_neuts_hop_{hop}.pkl", "wb") as f:
         pkl.dump(neutral_mutations, f)
+
+
+NEUTRAL_PROBABILITY = {
+    "V": 1/3, "A": 1/3, "D": 1/6,
+    "E": 1/6, "G": 1/3, "F": 1/6,
+    "L": 1/3, "S": 1/3, "Y": 1/6,
+    "X": 1/6, "C": 1/6, "W": 0,
+    "P": 1/3, "H": 1/6, "Q": 1/6,
+    "R": 1/3, "I": 1/4, "M": 0,
+    "T": 1/3, "N": 1/6, "K": 1/6,
+}
+
+
+def get_neutral_probability(sequence):
+    probability = 0
+    for i in range(0, len(sequence)):
+        probability += NEUTRAL_PROBABILITY[sequence[i]]
+    return probability / len(sequence)
+
+
+def get_approximate_neutral_mutations(sequence, hop):
+    prob = get_neutral_probability(sequence)
+    n = len(sequence) * 3
+    k = hop
+    total_mutations = (math.factorial(n) / (math.factorial(k)*math.factorial(n-k))) * 3**k
+    neutral_mutations = total_mutations * prob**k
+    print(str(hop)+" mutations away for input genome with "+str(len(sequence))+" codons, "+str(len(sequence)*3)+" nucleotides.")
+    print(int(total_mutations), "total "+str(hop)+" hop mutations")
+    print(int(math.floor(neutral_mutations)), "approximate neutral mutations")
+    print("percentage of neutral mutations of total "+str(hop)+" hop mutations ≈ "+str(round((neutral_mutations/total_mutations)*100, 4))+'%\n')
+    return neutral_mutations
