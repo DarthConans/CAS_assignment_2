@@ -159,26 +159,39 @@ def serialize_results(neutral_mutations, hop):
         pkl.dump(neutral_mutations, f)
 
 
-NEUTRAL_PROBABILITY = {
-    "V": 1/3, "A": 1/3, "D": 1/6,
-    "E": 1/6, "G": 1/3, "F": 1/6,
-    "L": 1/3, "S": 1/3, "Y": 1/6,
-    "X": 1/6, "C": 1/6, "W": 0,
-    "P": 1/3, "H": 1/6, "Q": 1/6,
-    "R": 1/3, "I": 1/4, "M": 0,
-    "T": 1/3, "N": 1/6, "K": 1/6,
+NEUTRAL_PROBABILITY_LOW = {
+    "V": 1/3, "A": 1/3, "D": 1/9,
+    "E": 1/9, "G": 1/3, "F": 1/9,
+    "L": 2/9, "S": 1/9, "Y": 1/9,
+    "X": 1/9, "C": 1/9, "W": 0,
+    "P": 1/3, "H": 2/9, "Q": 2/9,
+    "R": 2/9, "I": 2/9, "M": 0,
+    "T": 1/3, "N": 1/9, "K": 1/9
+}
+
+NEUTRAL_PROBABILITY_HIGH = {
+    "V": 1/3, "A": 1/3, "D": 1/9,
+    "E": 1/9, "G": 1/3, "F": 1/9,
+    "L": 4/9, "S": 1/3, "Y": 1/9,
+    "X": 2/9, "C": 1/9, "W": 0,
+    "P": 1/3, "H": 2/9, "Q": 2/9,
+    "R": 4/9, "I": 2/9, "M": 0,
+    "T": 1/3, "N": 1/9, "K": 1/9
 }
 
 
-def get_neutral_probability(sequence):
+def get_neutral_probability(sequence, LOW_FLAG=True):
     probability = 0
     for i in range(0, len(sequence)):
-        probability += NEUTRAL_PROBABILITY[sequence[i]]
+        if LOW_FLAG:
+            probability += NEUTRAL_PROBABILITY_LOW[sequence[i]]
+        else:
+            probability += NEUTRAL_PROBABILITY_HIGH[sequence[i]]
     return probability / len(sequence)
 
 
-def get_approximate_neutral_mutations(sequence, hop):
-    prob = get_neutral_probability(sequence)
+def get_approximate_neutral_mutations(sequence, hop, LOW_ESTIMATE=True):
+    prob = get_neutral_probability(sequence, LOW_ESTIMATE)
     n = len(sequence) * 3
     k = hop
     total_mutations = (math.factorial(n) / (math.factorial(k)*math.factorial(n-k))) * 3**k
