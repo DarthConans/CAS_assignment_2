@@ -190,14 +190,18 @@ def get_neutral_probability(sequence, LOW_FLAG=True):
     return probability / len(sequence)
 
 
-def get_approximate_neutral_mutations(sequence, hop, LOW_ESTIMATE=True):
-    prob = get_neutral_probability(sequence, LOW_ESTIMATE)
+def get_approximate_neutral_mutations(sequence, hop):
+    low_prob = get_neutral_probability(sequence, True)
+    high_prob = get_neutral_probability(sequence, False)
     n = len(sequence) * 3
     k = hop
     total_mutations = (math.factorial(n) / (math.factorial(k)*math.factorial(n-k))) * 3**k
-    neutral_mutations = total_mutations * prob**k
+    neutral_mutations_low = total_mutations * low_prob**k
+    neutral_mutations_high = total_mutations * high_prob**k
     print(str(hop)+" mutations away for input genome with "+str(len(sequence))+" codons, "+str(len(sequence)*3)+" nucleotides.")
     print(int(total_mutations), "total "+str(hop)+" hop mutations")
-    print(int(math.floor(neutral_mutations)), "approximate neutral mutations")
-    print("percentage of neutral mutations of total "+str(hop)+" hop mutations ≈ "+str(round((neutral_mutations/total_mutations)*100, 4))+'%\n')
-    return neutral_mutations
+    print(int(math.floor(neutral_mutations_low)), "low estimate of neutral mutations")
+    print(int(math.floor(neutral_mutations_high)), "high estimate of neutral mutations")
+    print("percentage of low estimate neutral mutations of total "+str(hop)+" hop mutations ≈ "+str(round((neutral_mutations_low/total_mutations)*100, 4))+'%')
+    print("percentage of high estimate neutral mutations of total "+str(hop)+" hop mutations ≈ "+str(round((neutral_mutations_high/total_mutations)*100, 4))+'%\n')
+    return neutral_mutations_low, neutral_mutations_high
