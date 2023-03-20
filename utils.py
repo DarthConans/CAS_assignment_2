@@ -204,4 +204,4 @@ def get_approximate_neutral_mutations(sequence, hop):
     print(int(math.floor(neutral_mutations_high)), "high estimate of neutral mutations")
     print("percentage of low estimate neutral mutations of total "+str(hop)+" hop mutations ≈ "+str(round((neutral_mutations_low/total_mutations)*100, 4))+'%')
     print("percentage of high estimate neutral mutations of total "+str(hop)+" hop mutations ≈ "+str(round((neutral_mutations_high/total_mutations)*100, 4))+'%\n')
-    return neutral_mutations_low, neutral_mutations_high
+    return neutral_mutations_low, neutral_mutations_high, total_mutations
