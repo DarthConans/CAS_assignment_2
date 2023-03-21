@@ -36,13 +36,16 @@ plot.set_yscale("log")
 
 plt.tight_layout()
 
-plot.plot(xs, total, marker="o", linestyle="dashed", linewidth=1, color="blue", label="Total Mutations")
+plot.plot(xs, total, marker="o", linestyle="dashed", linewidth=1, color="purple", label="Total Mutations")
 
 #plot.fill_between(xs, low_prob, high_prob, alpha=0.5, color="red")
 #plot.plot(xs, [(x+y)/2 for x,y in zip(low_prob, high_prob)], marker="o", linestyle="dashed", linewidth=1, color="red", label="Neutral Mutations")
 
+average = [(x+y)/2 for x,y in zip(low_prob, high_prob)]
+
 plot.fill_between(xs, low_prob, high_prob, alpha=0.2, color="red")
-plot.errorbar(xs, [(x+y)/2 for x,y in zip(low_prob, high_prob)], yerr=[(y-x)/2 for x,y in zip(low_prob, high_prob)], marker="o", capsize=4, linestyle="dashed", linewidth=1, color="red", label="Neutral Mutations")
+plot.errorbar(xs, average, yerr=[(y-x)/2 for x,y in zip(low_prob, high_prob)], marker="o", capsize=4, linestyle="dashed", linewidth=1, color="red", label="Neutral Mutations")
+plot.errorbar(xs, [x-y for x,y in zip(total, average)], yerr=[(y-x)/2 for x,y in zip(low_prob, high_prob)], marker="o", capsize=4, linestyle="dashed", linewidth=1, color="blue", label="Non-Neutral Mutations")
 
 plot.legend(loc="upper left")
 
