@@ -19,6 +19,7 @@ def neutral_genomes_and_sites(genetic_sequence):
         new_seqs = permute_coding_sequence(seq)
         neutral_seqs = extract_all_equivalents(seq, new_seqs)
         this_round_neutral = [(int(before + neutral_seq + after), i // 3) for neutral_seq in neutral_seqs]
+
         neutral_sequences.extend(this_round_neutral)
     return neutral_sequences
 
@@ -34,6 +35,7 @@ def antigenic_neutral_function(antigen_frame):
 
 binding = BindingCalculator()
 
+non_antigenic = set()
 
 
 def get_antigenically_neutral(neutral_tuples, offset = 331):
@@ -58,9 +60,27 @@ def get_antigenically_neutral(neutral_tuples, offset = 331):
     return [rets[0] for rets in ret]
 
 
-
 if __name__ == "__main__":
-    # all_new, neutrals = get_new_genomes_and_neutral_genomes(translate_string_to_numbers("GUUCAAGCA"))
+    one_hop = set()
+    for site in binding.sites:
+        frame = binding.escape_per_site([site])
+        if antigenic_neutral_function(frame):
+            one_hop.add(site)
+    with open("results/only_antigenically_neutral_1_hop_map.pkl", "wb") as f:
+        pkl.dump(one_hop, f)
+    two_hops = set()
+    to_do = len(one_hop)
+    done = 0
+    for first_site in one_hop:
+        for second_site in binding.sites:
+            frame = binding.escape_per_site([first_site, second_site])
+            if antigenic_neutral_function(frame):
+                two_hops.add((first_site, second_site))
+        done += 1
+        print(f"I'VE DONE {done} OUT OF {to_do}")
+
+    with open("results/only_antigenically_neutral_2_hop_map.pkl", "wb") as f:
+        pkl.dump(one_hop, f)
     l = int(load_sequence())
     assert len(str(l)) == 918
     neutrals_loaded = neutral_genomes_and_sites(l)
