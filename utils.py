@@ -207,7 +207,7 @@ def get_approximate_neutral_mutations(sequence, hop):
     return neutral_mutations_low, neutral_mutations_high, total_mutations
 
 
-import pickle as pkl
-with open("results/antigenically_neutral_2_hop_map.pkl", "rb") as f:
-   loaded = pkl.load(f)
-   print(loaded)
+#import pickle as pkl
+#with open("results/antigenically_neutral_2_hop_map.pkl", "rb") as f:
+#   loaded = pkl.load(f)
+#   print(loaded)
