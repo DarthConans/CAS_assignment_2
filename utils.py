@@ -205,3 +205,9 @@ def get_approximate_neutral_mutations(sequence, hop):
     print("percentage of low estimate neutral mutations of total "+str(hop)+" hop mutations ≈ "+str(round((neutral_mutations_low/total_mutations)*100, 4))+'%')
     print("percentage of high estimate neutral mutations of total "+str(hop)+" hop mutations ≈ "+str(round((neutral_mutations_high/total_mutations)*100, 4))+'%\n')
     return neutral_mutations_low, neutral_mutations_high, total_mutations
+
+
+import pickle as pkl
+with open("results/antigenically_neutral_2_hop_map.pkl", "rb") as f:
+   loaded = pkl.load(f)
+   print(loaded)
