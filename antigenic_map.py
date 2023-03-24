@@ -23,6 +23,18 @@ def neutral_genomes_and_sites(genetic_sequence):
         neutral_sequences.extend(this_round_neutral)
     return neutral_sequences
 
+def all_genomes_and_sites(genetic_sequence):
+    sequences = set()
+    translated_sequence = str(genetic_sequence)
+    for i in range(0, len(translated_sequence), 3):
+        before = translated_sequence[0:i]
+        seq = translated_sequence[i: i + 3]
+        after = translated_sequence[i + 3:]
+        new_seqs = permute_coding_sequence(seq)
+        this_round_new = [(int(before + seq + after), i // 3) for seq in new_seqs]
+        sequences.update(this_round_new)
+    return sequences
+
 ESCAPE_THRESHOLD = .7
 
 def antigenic_neutral_function(antigen_frame):
@@ -60,7 +72,7 @@ def get_antigenically_neutral(neutral_tuples, offset = 331):
     return [rets[0] for rets in ret]
 
 
-if __name__ == "__main__":
+def generate_antigenic_from_sites():
     one_hop = set()
     for site in binding.sites:
         frame = binding.escape_per_site([site])
@@ -79,27 +91,35 @@ if __name__ == "__main__":
                     two_hops.add((first_site, second_site))
         done += 1
         print(f"I'VE DONE {done} OUT OF {to_do}")
-
     with open("results/only_antigenically_neutral_2_hop_map.pkl", "wb") as f:
         pkl.dump(one_hop, f)
+    return one_hop, two_hops
+
+
+if __name__ == "__main__":
+    #generate_antigenic_from_sites()
     l = int(load_sequence())
     assert len(str(l)) == 918
     neutrals_loaded = neutral_genomes_and_sites(l)
     neutrals = set(neutrals_loaded)
-    antigenically_neutral_1_hop_map = get_antigenically_neutral(neutrals)
-    with open("results/antigenically_neutral_1_hop_map.pkl", "wb") as f:
-        pkl.dump(antigenically_neutral_1_hop_map, f)
-    neutral_2_hop = set()
+    neutral_2_hop_all = set()
+    done = 0
+    to_do = len(neutrals)
+    neutrals_seq_only = set([x[0] for x in neutrals])
     for l in neutrals:
         to_neutrify = l[0]
-        r = neutral_genomes_and_sites(to_neutrify)
-        r = [(a[0], a[1], l[1]) for a in r]
-        neutral_2_hop.update(r)
+        r = all_genomes_and_sites(to_neutrify)
+        this_round_unique = set([x[0] for x in r])
+        r = [(a[0], a[1], l[1]) for a in r if a[0] not in neutrals_seq_only]
+        neutral_2_hop_all.update(r)
+        done += 1
+        print(f"I'VE DONE {done} OUT OF {to_do}")
 
-    antigenically_neutral_2_hop_map = get_antigenically_neutral(neutral_2_hop)
+
+    antigenically_neutral_2_hop_map = get_antigenically_neutral(neutral_2_hop_all)
 
 
-    with open("results/antigenically_neutral_2_hop_map.pkl", "wb") as f:
+    with open("results/antigenically_neutral_2_hop_all_map.pkl", "wb") as f:
         pkl.dump(antigenically_neutral_2_hop_map, f)
     # with open("results/loop_neuts_hop_3.pkl", "rb") as f:
 
