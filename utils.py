@@ -190,22 +190,50 @@ def get_neutral_probability(sequence, LOW_FLAG=True):
     return probability / len(sequence)
 
 
+def n_choose_k(n, k):
+    return math.factorial(n) / (math.factorial(k)*math.factorial(n-k))
+
+
 def get_approximate_neutral_mutations(sequence, hop):
     low_prob = get_neutral_probability(sequence, True)
     high_prob = get_neutral_probability(sequence, False)
     n = len(sequence) * 3
     k = hop
-    total_mutations = (math.factorial(n) / (math.factorial(k)*math.factorial(n-k))) * 3**k
+    total_mutations = n_choose_k(n, k) * 3**k
     neutral_mutations_low = total_mutations * low_prob**k
     neutral_mutations_high = total_mutations * high_prob**k
-    print(str(hop)+" mutations away for input genome with "+str(len(sequence))+" codons, "+str(len(sequence)*3)+" nucleotides.")
-    print(int(total_mutations), "total "+str(hop)+" hop mutations")
-    print(int(math.floor(neutral_mutations_low)), "low estimate of neutral mutations")
-    print(int(math.floor(neutral_mutations_high)), "high estimate of neutral mutations")
-    print("percentage of low estimate neutral mutations of total "+str(hop)+" hop mutations ≈ "+str(round((neutral_mutations_low/total_mutations)*100, 4))+'%')
-    print("percentage of high estimate neutral mutations of total "+str(hop)+" hop mutations ≈ "+str(round((neutral_mutations_high/total_mutations)*100, 4))+'%\n')
     return neutral_mutations_low, neutral_mutations_high, total_mutations
 
+
+def get_neutral_neighbors(sequence, hop):
+    low_prob = get_neutral_probability(sequence, True)
+    high_prob = get_neutral_probability(sequence, False)
+    n = len(sequence) * 3
+    k = hop
+
+    N_low = n * 3
+    N_high = n * 3
+    print(N_low, N_high)
+    for i in range(1, k+1):
+        N_low = N_low - (n_choose_k(n, i) * 3**i * low_prob**i) + (n_choose_k(n, i+1) * 3**(i+1) * low_prob**i)
+        N_high = N_high - (n_choose_k(n, i) * 3**i * high_prob**i) + (n_choose_k(n, i+1) * 3**(i+1) * high_prob**i)
+        print(N_low, N_high)
+    return N_low, N_high
+
+
+def get_synonymous_nonsynonymous_mutations(sequence, hop):
+    low_prob = get_neutral_probability(sequence, True)
+    high_prob = get_neutral_probability(sequence, False)
+
+    n = len(sequence) * 3
+    k = hop
+
+    N_low, N_high = get_neutral_neighbors(sequence, hop)
+    N_synonymous_low = n_choose_k(n, k) * 3**k * low_prob**k
+    N_synonymous_high = n_choose_k(n, k) * 3**k * high_prob**k
+    N_nonsynonymous_low = N_low - N_synonymous_low
+    N_nonsynonymous_high = N_high - N_synonymous_high
+    return N_synonymous_low, N_nonsynonymous_low, N_synonymous_high, N_nonsynonymous_high
 
 #import pickle as pkl
 #with open("results/antigenically_neutral_2_hop_map.pkl", "rb") as f:
