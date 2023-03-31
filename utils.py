@@ -205,20 +205,16 @@ def get_approximate_neutral_mutations(sequence, hop):
     return neutral_mutations_low, neutral_mutations_high, total_mutations
 
 
-def get_neutral_neighbors(sequence, hop):
-    low_prob = get_neutral_probability(sequence, True)
-    high_prob = get_neutral_probability(sequence, False)
+def get_neutral_neighbors(sequence, hop, prob):
     n = len(sequence) * 3
     k = hop
 
-    N_low = n * 3
-    N_high = n * 3
-    print(N_low, N_high)
+    N = n * 3
+    print(N)
     for i in range(1, k+1):
-        N_low = N_low - (n_choose_k(n, i) * 3**i * low_prob**i) + (n_choose_k(n, i+1) * 3**(i+1) * low_prob**i)
-        N_high = N_high - (n_choose_k(n, i) * 3**i * high_prob**i) + (n_choose_k(n, i+1) * 3**(i+1) * high_prob**i)
-        print(N_low, N_high)
-    return N_low, N_high
+        N = N - (n_choose_k(n, i) * 3**i * prob**i) + (n_choose_k(n, i+1) * 3**(i+1) * prob**i)
+        print(N)
+    return N
 
 
 def get_synonymous_nonsynonymous_mutations(sequence, hop):
@@ -228,12 +224,26 @@ def get_synonymous_nonsynonymous_mutations(sequence, hop):
     n = len(sequence) * 3
     k = hop
 
-    N_low, N_high = get_neutral_neighbors(sequence, hop)
-    N_synonymous_low = n_choose_k(n, k) * 3**k * low_prob**k
-    N_synonymous_high = n_choose_k(n, k) * 3**k * high_prob**k
+    N_low = get_neutral_neighbors(sequence, hop, low_prob)
+    N_high = get_neutral_neighbors(sequence, hop, high_prob)
+    N_synonymous_low = n_choose_k(n, k+1) * 3**(k+1) * low_prob**(k+1)
+    N_synonymous_high = n_choose_k(n, k+1) * 3**(k+1) * high_prob**(k+1)
     N_nonsynonymous_low = N_low - N_synonymous_low
     N_nonsynonymous_high = N_high - N_synonymous_high
     return N_synonymous_low, N_nonsynonymous_low, N_synonymous_high, N_nonsynonymous_high
+
+
+def get_antigenic_synonymous_nonsynonymous_mutations(sequence, hop):
+    prob = 0.90196078431
+
+    n = len(sequence) * 3
+    k = hop
+
+    N = get_neutral_neighbors(sequence, hop, prob)
+    N_synonymous = n_choose_k(n, k+1) * 3**(k+1) * prob**(k+1)
+    N_nonsynonymous = N - N_synonymous
+    return N_synonymous, N_nonsynonymous
+
 
 #import pickle as pkl
 #with open("results/antigenically_neutral_2_hop_map.pkl", "rb") as f:
