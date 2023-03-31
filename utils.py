@@ -234,7 +234,7 @@ def get_synonymous_nonsynonymous_mutations(sequence, hop):
 
 
 def get_antigenic_synonymous_nonsynonymous_mutations(sequence, hop):
-    prob = 0.90196078431
+    prob = 0.97409326424
 
     n = len(sequence) * 3
     k = hop
