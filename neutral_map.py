@@ -34,7 +34,7 @@ def serialize_results(neutral_mutations, hop):
 if __name__ == "__main__":
     # all_new, neutrals = get_new_genomes_and_neutral_genomes(translate_string_to_numbers("GUUCAAGCA"))
     l = int(load_sequence())
-    assert len(str(l)) == 918
+    assert len(str(l)) == 579
     _, neutrals_loaded = get_new_genomes_and_neutral_genomes(l)
     neutrals = set(neutrals_loaded)
     serialize_results(neutrals_loaded, 1)

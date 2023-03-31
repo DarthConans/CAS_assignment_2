@@ -35,7 +35,7 @@ def all_genomes_and_sites(genetic_sequence):
         sequences.update(this_round_new)
     return sequences
 
-ESCAPE_THRESHOLD = 3.0
+ESCAPE_THRESHOLD = 3
 
 def antigenic_neutral_function(antigen_frame):
     original = antigen_frame["original_escape"].sum()
@@ -50,7 +50,7 @@ binding = BindingCalculator()
 non_antigenic = set()
 
 
-def get_antigenically_neutral(neutral_tuples, offset = 331):
+def get_antigenically_neutral(neutral_tuples, offset=330):
     ret = []
     sites_have = set([neutral_tuple[1] + offset for neutral_tuple in neutral_tuples])
     sites_wanted = binding.sites
@@ -99,7 +99,7 @@ def generate_antigenic_from_sites():
 if __name__ == "__main__":
     #generate_antigenic_from_sites()
     l = int(load_sequence())
-    assert len(str(l)) == 918
+    assert len(str(l)) == 579
     neutrals_loaded = neutral_genomes_and_sites(l)
     neutrals = set(neutrals_loaded)
     neutral_2_hop_all = set()
