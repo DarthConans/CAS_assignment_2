@@ -35,7 +35,7 @@ def all_genomes_and_sites(genetic_sequence):
         sequences.update(this_round_new)
     return sequences
 
-ESCAPE_THRESHOLD = .7
+ESCAPE_THRESHOLD = 3.0
 
 def antigenic_neutral_function(antigen_frame):
     original = antigen_frame["original_escape"].sum()
