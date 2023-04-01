@@ -4,96 +4,11 @@ import pickle as pkl
 import os
 from multiprocessing import Pool
 from utils import *
-from bindingcalculator import *
 
 
 
 
-def neutral_genomes_and_sites(genetic_sequence):
-    neutral_sequences = []
-    translated_sequence = str(genetic_sequence)
-    for i in range(0, len(translated_sequence), 3):
-        before = translated_sequence[0:i]
-        seq = translated_sequence[i: i + 3]
-        after = translated_sequence[i + 3:]
-        new_seqs = permute_coding_sequence(seq)
-        neutral_seqs = extract_all_equivalents(seq, new_seqs)
-        this_round_neutral = [(int(before + neutral_seq + after), i // 3) for neutral_seq in neutral_seqs]
 
-        neutral_sequences.extend(this_round_neutral)
-    return neutral_sequences
-
-def all_genomes_and_sites(genetic_sequence):
-    sequences = set()
-    translated_sequence = str(genetic_sequence)
-    for i in range(0, len(translated_sequence), 3):
-        before = translated_sequence[0:i]
-        seq = translated_sequence[i: i + 3]
-        after = translated_sequence[i + 3:]
-        new_seqs = permute_coding_sequence(seq)
-        this_round_new = [(int(before + seq + after), i // 3) for seq in new_seqs]
-        sequences.update(this_round_new)
-    return sequences
-
-ESCAPE_THRESHOLD = 3
-
-def antigenic_neutral_function(antigen_frame):
-    original = antigen_frame["original_escape"].sum()
-    retained = antigen_frame["retained_escape"].sum()
-    difference = abs(original - retained)
-    if retained > original or difference < ESCAPE_THRESHOLD:
-        return True
-    return False
-
-binding = BindingCalculator()
-
-non_antigenic = set()
-
-
-def get_antigenically_neutral(neutral_tuples, offset=330):
-    ret = []
-    sites_have = set([neutral_tuple[1] + offset for neutral_tuple in neutral_tuples])
-    sites_wanted = binding.sites
-    count_hits = len(sites_wanted.intersection(sites_have))
-    expected = len(neutral_tuples)
-    done = 0
-    for neutral_tuple in neutral_tuples:
-        if len(neutral_tuple) == 2:
-            sites = {neutral_tuple[1] + offset}
-        else:
-            sites = {neutral_tuple[1] + offset, neutral_tuple[2] + offset}
-        if len(sites - binding.sites) == 0:
-            antigentic_frame = binding.escape_per_site(sites)
-            if antigenic_neutral_function(antigentic_frame):
-                ret.append(neutral_tuple)
-        done += 1
-        if done % 1000 == 0:
-            print(f"FINISHED {done} OUT OF {expected}")
-    return [rets[0] for rets in ret]
-
-
-def generate_antigenic_from_sites():
-    one_hop = set()
-    for site in binding.sites:
-        frame = binding.escape_per_site([site])
-        if antigenic_neutral_function(frame):
-            one_hop.add(site)
-    with open("results/only_antigenically_neutral_1_hop_map.pkl", "wb") as f:
-        pkl.dump(one_hop, f)
-    two_hops = set()
-    to_do = len(one_hop)
-    done = 0
-    for first_site in one_hop:
-        for second_site in binding.sites:
-            if first_site != second_site:
-                frame = binding.escape_per_site([first_site, second_site])
-                if antigenic_neutral_function(frame):
-                    two_hops.add((first_site, second_site))
-        done += 1
-        print(f"I'VE DONE {done} OUT OF {to_do}")
-    with open("results/only_antigenically_neutral_2_hop_map.pkl", "wb") as f:
-        pkl.dump(one_hop, f)
-    return one_hop, two_hops
 
 
 if __name__ == "__main__":
