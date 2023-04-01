@@ -29,13 +29,18 @@ def to_csv(path, data, offset=330):
     header = "site,old amino,new amino,fitness change\n"
     row_data = []
     for datum in data:
+        row_vals = []
         for frozen in datum[0]:
             site = frozen[0] + offset
             old_amino = frozen[1]
             new_amino = frozen[2]
-            fitness_change = datum[1]
-            row = ",".join([str(site), old_amino, new_amino, str(fitness_change)])
-            row_data.append(row)
+            row_vals.extend([str(site), old_amino, new_amino])
+        while len(row_vals) < 3:
+            row_vals.append("None")
+        fitness_change = str(datum[1])
+        row_vals.append(fitness_change)
+        row = ",".join(row_vals)
+        row_data.append(row)
     with open(path, "w") as f:
         f.write(header)
         for row in row_data:
@@ -67,11 +72,14 @@ if __name__ == "__main__":
             done += 1
             if done % 1000 == 0:
                 print(f"I'VE TRANSLATED {done} OUT OF {to_do}")
+                print(f"THERE ARE {len(two_hop_all_translated)} IN THE SET")
+        with open("results/two_hop_translated.pkl", "wb") as f:
+            pkl.dump(two_hop_all_translated, f)
     one_and_two_all_translated = one_hop_all_translated.union(two_hop_all_translated)
-    mutations_and_indexes = set([get_mutations_and_indexes(original, x) for x in one_hop_all_translated])
+    mutations_and_indexes = set([get_mutations_and_indexes(original, x) for x in two_hop_all_translated])
     mutations_and_indexes = set([x for x in mutations_and_indexes if x])
     mutations_indexes_and_fitness_changes = [(x, get_fitness_change(x)) for x in mutations_and_indexes]
     mutations_indexes_and_fitness_changes = [x for x in mutations_indexes_and_fitness_changes if x[1] == x[1]]
     mutations_indexes_and_fitness_changes = sorted(mutations_indexes_and_fitness_changes, key=lambda x: x[1], reverse=True)
-    to_csv("results/fitness_change_1_hop.csv", mutations_indexes_and_fitness_changes)
+    to_csv("results/fitness_change_1_and_2_hop.csv", mutations_indexes_and_fitness_changes)
     print("krewl")
