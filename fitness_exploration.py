@@ -15,7 +15,7 @@ def to_number(val):
 threshold = 0
 
 
-fit = pd.read_csv("data/Neher_aa_fitness.csv")
+fit = pd.read_csv("data/aamut_fitness_all.csv")
 fit["number"] = fit["mutation"].apply(to_number)
 nans = fit[(fit["aa_fitness"] != fit["aa_fitness"]) | (fit["aa_fitness"] < threshold)]
 non_nas = fit[(fit["aa_fitness"] == fit["aa_fitness"]) & (fit["aa_fitness"] > threshold)]

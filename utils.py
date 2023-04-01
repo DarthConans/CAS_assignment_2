@@ -38,7 +38,7 @@ def translate_sequence_to_numbers(to_translate):
     return set([translate_string_to_numbers(trans) for trans in to_translate])
 
 
-EQUIVALENT_SEQUENCES = [
+EQUIVALENT_SEQUENCES_ORIG = [
     ({"GUU", "GUC", "GUA", "GUG"}, "V"),
     ({"GCU", "GCC", "GCA", "GCG"}, "A"),
     ({"GAU", "GAC"}, "D"),
@@ -48,7 +48,7 @@ EQUIVALENT_SEQUENCES = [
     ({"UUA", "UUG", "CUU", "CUC", "CUA", "CUG"}, "L"),
     ({"UCU", "UCC", "UCA", "UCG", "AGU", "AGC"}, "S"),
     ({"UAU", "UAC"}, "Y"),
-    ({"UAA", "UAG", "UGA"}, "X"),
+    ({"UAA", "UAG", "UGA"}, "*"),
     ({"UGU", "UGC"}, "C"),
     ({"UGG"}, "W"),
     ({"CCU", "CCC", "CCA", "CCG"}, "P"),
@@ -62,7 +62,7 @@ EQUIVALENT_SEQUENCES = [
     ({"AAA", "AAG"}, "K"),
 ]
 
-EQUIVALENT_SEQUENCES = [(translate_sequence_to_numbers(tup[0]), tup[1]) for tup in EQUIVALENT_SEQUENCES]
+EQUIVALENT_SEQUENCES = [(translate_sequence_to_numbers(tup[0]), tup[1]) for tup in EQUIVALENT_SEQUENCES_ORIG]
 
 
 def translate_numbers_to_string(to_translate):
@@ -85,11 +85,13 @@ def load_sequence(TRANSLATE_FLAG=True):
         return untranslated
 
 
-def tranlate_proteints_to_base_pairs(proteins):
+def tranlate_proteints_to_base_pairs(proteins, translation_list=None):
+    if translation_list is None:
+        translation_list = EQUIVALENT_SEQUENCES
     ret = []
     for protein in proteins:
         found = 0
-        for base_pair, prot in EQUIVALENT_SEQUENCES:
+        for base_pair, prot in translation_list:
             if prot == protein:
                 ret.append(list(base_pair)[0])
                 found = 1
@@ -98,13 +100,34 @@ def tranlate_proteints_to_base_pairs(proteins):
     return "".join(ret)
 
 
+def translate_base_pairs_to_proteins(base_pairs_to_translate, translation_list=None):
+    if translation_list is None:
+        translation_list = EQUIVALENT_SEQUENCES
+    for base_pairs, prot in translation_list:
+        if base_pairs_to_translate in base_pairs:
+            return prot
+    raise ValueError(f"INVALID BASE PAIR SEQUENCE {base_pairs_to_translate} DIDN'T MATCH")
+
+def translate_amino_sequence_to_proteins(amino_sequence_to_translate, translation_list=None):
+    if translation_list is None:
+        translation_list = EQUIVALENT_SEQUENCES
+    ret = []
+    amino_string = str(amino_sequence_to_translate)
+    for i in range(0, len(amino_string), 3):
+        local_amino_sequence = amino_string[i:i+3]
+        ret.append(translate_base_pairs_to_proteins(local_amino_sequence, translation_list))
+    return "".join(ret)
+
+
 CODED_FOR_DICT = {}
 
 
-def get_coded_for(sequence):
+def get_coded_for(sequence, translation_list=None):
+    if translation_list is None:
+        translation_list = EQUIVALENT_SEQUENCES
     if sequence in CODED_FOR_DICT.keys():
         return CODED_FOR_DICT[sequence]
-    for seq in EQUIVALENT_SEQUENCES:
+    for seq in translation_list:
         if sequence in seq[0]:
             CODED_FOR_DICT[sequence] = seq[1]
             return seq[1]
@@ -160,23 +183,23 @@ def serialize_results(neutral_mutations, hop):
 
 
 NEUTRAL_PROBABILITY_LOW = {
-    "V": 1/3, "A": 1/3, "D": 1/9,
-    "E": 1/9, "G": 1/3, "F": 1/9,
-    "L": 2/9, "S": 1/9, "Y": 1/9,
-    "X": 1/9, "C": 1/9, "W": 0,
-    "P": 1/3, "H": 2/9, "Q": 2/9,
-    "R": 2/9, "I": 2/9, "M": 0,
-    "T": 1/3, "N": 1/9, "K": 1/9
+    "V": 1 / 3, "A": 1 / 3, "D": 1 / 9,
+    "E": 1 / 9, "G": 1 / 3, "F": 1 / 9,
+    "L": 2 / 9, "S": 1 / 9, "Y": 1 / 9,
+    "X": 1 / 9, "C": 1 / 9, "W": 0,
+    "P": 1 / 3, "H": 2 / 9, "Q": 2 / 9,
+    "R": 2 / 9, "I": 2 / 9, "M": 0,
+    "T": 1 / 3, "N": 1 / 9, "K": 1 / 9
 }
 
 NEUTRAL_PROBABILITY_HIGH = {
-    "V": 1/3, "A": 1/3, "D": 1/9,
-    "E": 1/9, "G": 1/3, "F": 1/9,
-    "L": 4/9, "S": 1/3, "Y": 1/9,
-    "X": 2/9, "C": 1/9, "W": 0,
-    "P": 1/3, "H": 2/9, "Q": 2/9,
-    "R": 4/9, "I": 2/9, "M": 0,
-    "T": 1/3, "N": 1/9, "K": 1/9
+    "V": 1 / 3, "A": 1 / 3, "D": 1 / 9,
+    "E": 1 / 9, "G": 1 / 3, "F": 1 / 9,
+    "L": 4 / 9, "S": 1 / 3, "Y": 1 / 9,
+    "X": 2 / 9, "C": 1 / 9, "W": 0,
+    "P": 1 / 3, "H": 2 / 9, "Q": 2 / 9,
+    "R": 4 / 9, "I": 2 / 9, "M": 0,
+    "T": 1 / 3, "N": 1 / 9, "K": 1 / 9
 }
 
 
@@ -191,7 +214,7 @@ def get_neutral_probability(sequence, LOW_FLAG=True):
 
 
 def n_choose_k(n, k):
-    return math.factorial(n) / (math.factorial(k)*math.factorial(n-k))
+    return math.factorial(n) / (math.factorial(k) * math.factorial(n - k))
 
 
 def get_approximate_neutral_mutations(sequence, hop):
@@ -199,9 +222,9 @@ def get_approximate_neutral_mutations(sequence, hop):
     high_prob = get_neutral_probability(sequence, False)
     n = len(sequence) * 3
     k = hop
-    total_mutations = n_choose_k(n, k) * 3**k
-    neutral_mutations_low = total_mutations * low_prob**k
-    neutral_mutations_high = total_mutations * high_prob**k
+    total_mutations = n_choose_k(n, k) * 3 ** k
+    neutral_mutations_low = total_mutations * low_prob ** k
+    neutral_mutations_high = total_mutations * high_prob ** k
     return neutral_mutations_low, neutral_mutations_high, total_mutations
 
 
@@ -211,8 +234,8 @@ def get_neutral_neighbors(sequence, hop, prob):
 
     N = n * 3
     print(N)
-    for i in range(1, k+1):
-        N = N - (n_choose_k(n, i) * 3**i * prob**i) + (n_choose_k(n, i+1) * 3**(i+1) * prob**i)
+    for i in range(1, k + 1):
+        N = N - (n_choose_k(n, i) * 3 ** i * prob ** i) + (n_choose_k(n, i + 1) * 3 ** (i + 1) * prob ** i)
         print(N)
     return N
 
@@ -226,8 +249,8 @@ def get_synonymous_nonsynonymous_mutations(sequence, hop):
 
     N_low = get_neutral_neighbors(sequence, hop, low_prob)
     N_high = get_neutral_neighbors(sequence, hop, high_prob)
-    N_synonymous_low = n_choose_k(n, k+1) * 3**(k+1) * low_prob**(k+1)
-    N_synonymous_high = n_choose_k(n, k+1) * 3**(k+1) * high_prob**(k+1)
+    N_synonymous_low = n_choose_k(n, k + 1) * 3 ** (k + 1) * low_prob ** (k + 1)
+    N_synonymous_high = n_choose_k(n, k + 1) * 3 ** (k + 1) * high_prob ** (k + 1)
     N_nonsynonymous_low = N_low - N_synonymous_low
     N_nonsynonymous_high = N_high - N_synonymous_high
     return N_synonymous_low, N_nonsynonymous_low, N_synonymous_high, N_nonsynonymous_high
@@ -240,12 +263,11 @@ def get_antigenic_synonymous_nonsynonymous_mutations(sequence, hop):
     k = hop
 
     N = get_neutral_neighbors(sequence, hop, prob)
-    N_synonymous = n_choose_k(n, k+1) * 3**(k+1) * prob**(k+1)
+    N_synonymous = n_choose_k(n, k + 1) * 3 ** (k + 1) * prob ** (k + 1)
     N_nonsynonymous = N - N_synonymous
     return N_synonymous, N_nonsynonymous
 
-
-#import pickle as pkl
-#with open("results/antigenically_neutral_2_hop_map.pkl", "rb") as f:
+# import pickle as pkl
+# with open("results/antigenically_neutral_2_hop_map.pkl", "rb") as f:
 #   loaded = pkl.load(f)
 #   print(loaded)
