@@ -388,6 +388,37 @@ def generate_antigenic_from_sites():
         pkl.dump(one_hop, f)
     return one_hop, two_hops
 
+
+def probability_epistatic_compensatory_mutation(sequence, hop):
+    p2 = 0.00001
+    p_low = get_neutral_probability(sequence, True)
+    p_high = get_neutral_probability(sequence, False)
+
+    n = len(sequence) * 3
+    k = hop
+
+    # E_0
+    E_0_low = n_choose_k(n, 1) * 3 * p2 * (1-p_low)
+    E_0_high = n_choose_k(n, 1) * 3 * p2 * (1-p_high)
+    E_low = 0
+    E_high = 0
+    for i in range(1, k+1):
+        #E_n
+        E_low = E_low + (n_choose_k(n, i+1) * (3**(i+1)) * (p_low**i) * (1-p_low) * ((p2*((p2**i)-((1-p2)**i)))/(2*p2 - 1)))
+        E_high = E_high + (n_choose_k(n, i+1) * (3**(i+1)) * (p_high**i) * (1-p_high) * ((p2*((p2**i)-((1-p2)**i)))/(2*p2 - 1)))
+    E_low = E_0_low + E_low
+    E_high = E_0_high + E_high
+
+    S_n_low, S_n_bar_low, S_n_high, S_n_bar_high = get_synonymous_nonsynonymous_mutations(sequence, hop)
+
+    print('En low', E_low, S_n_low, S_n_bar_low)
+    print('En high', E_high, S_n_high, S_n_bar_high)
+
+    Pe_low = E_low / S_n_bar_low
+    Pe_high = E_high / S_n_bar_high
+    return Pe_low, Pe_high
+
+
 # import pickle as pkl
 # with open("results/antigenically_neutral_2_hop_map.pkl", "rb") as f:
 #   loaded = pkl.load(f)
