@@ -89,7 +89,7 @@ bind_XBB = BindingCalculator(known_to_neutralize="XBB", weight_by_log_IC50=False
 
 def get_titer_table(sites):
     # testing against antibodies known to neutralize BA.1 BA.2 BA.275 BQ.1.1 D614G XBB
-    columns = ["site name", "BA.1", "BA.2", "BA.2.75", "BA.5", "BQ.1.1", "D614G", "XBB"]
+    columns = ["", "BA.1", "BA.2", "BA.2.75", "BA.5", "BQ.1.1", "D614G", "XBB"]
     titer = []
     for i in range(len(sites)):
         titer.append([
