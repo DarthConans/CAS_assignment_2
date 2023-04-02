@@ -89,7 +89,8 @@ bind_XBB = BindingCalculator(known_to_neutralize="XBB", weight_by_log_IC50=False
 
 def get_titer_table(sites):
     # testing against antibodies known to neutralize BA.1 BA.2 BA.275 BQ.1.1 D614G XBB
-    titer = [["site name", "BA.1", "BA.2", "BA.2.75", "BA.5", "BQ.1.1", "D614G", "XBB"]]
+    columns = ["site name", "BA.1", "BA.2", "BA.2.75", "BA.5", "BQ.1.1", "D614G", "XBB"]
+    titer = []
     for i in range(len(sites)):
         titer.append([
             "Seq"+str(i),
@@ -101,7 +102,8 @@ def get_titer_table(sites):
             bind_D614G.binding_retained({sites[i]}),
             bind_XBB.binding_retained({sites[i]})
             ])
-    print(titer)
+    frame = pd.DataFrame(columns=columns, data=titer)
+    frame.to_csv("results/titer_table.csv", index=False)
     #titer.to_csv("results/titer_table.csv", index=False)
 
 
