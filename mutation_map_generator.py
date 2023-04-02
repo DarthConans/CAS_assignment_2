@@ -135,6 +135,12 @@ if __name__ == "__main__":
     data = pd.read_csv("results/fitness_change_of_antigenically_non_neutral_2_hop.csv", index_col=False)
     # Get the top value in the old sequence column
     old_sequence = data["old sequence"].iloc[0]
+    data_bak = data.copy()
+    data_bak = data_bak.sort_values(by=["antigen difference"], axis=0, ascending=False)
+    data_bak = data_bak[(data_bak["fitness change"] > 0)]
+    data_bak = data_bak.head(20)
+    data_bak = data_bak[["mutation 1 site", "mutation 2 site", "fitness change", "antigen difference", "new amino", "old amino"]]
+    data_bak.to_csv("results/top_antigen_with_fitness_change.csv", index=False)
     # Down select
     data = data[["site", "fitness change", "antigen difference", "new sequence"]]
     # Select where anitgen difference above average
