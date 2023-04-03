@@ -138,7 +138,7 @@ if __name__ == "__main__":
     data_bak = data.copy()
     data_bak = data_bak.sort_values(by=["antigen difference"], axis=0, ascending=False)
     data_bak = data_bak[(data_bak["fitness change"] > 0)]
-    data_bak = data_bak[["mutation 1 site", "mutation 2 site", "fitness change", "antigen difference", "new amino", "old amino"]]
+    data_bak = data_bak[["mutation 1 site", "mutation 2 site", "old amino", "new amino", "fitness change", "antigen difference"]]
     data_bak = data_bak.drop_duplicates()
     data_bak = data_bak.head(20)
     data_bak.to_csv("results/top_antigen_with_fitness_change.csv", index=False)
