@@ -330,7 +330,7 @@ def get_antigenically_neutral(neutral_tuples, offset=330):
         if len(neutral_tuple) == 2:
             sites = (neutral_tuple[1] + offset,)
         else:
-            sites = (neutral_tuple[1] + offset, neutral_tuple[2] + offset)
+            sites = tuple(sorted((neutral_tuple[1] + offset, neutral_tuple[2] + offset)))
         if sites in anitgen_memo.keys():
             truth = anitgen_memo[sites]
         else:
