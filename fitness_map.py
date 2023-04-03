@@ -74,7 +74,7 @@ if __name__ == "__main__":
     antigenically_non_neutral_2_hop_map = get_antigenically_non_neutral(list(neutral_2_hop_all))
     two_hop_all_translated = set()
     for entry in antigenically_non_neutral_2_hop_map:
-        two_hop_all_translated.add((translate_amino_sequence_to_proteins(entry[0][0]), entry[0][1], entry[0][2], entry[1][0], entry[1][1], entry[1][2], entry[0][0], initial))
+        two_hop_all_translated.add((translate_codon_sequence_to_aas(entry[0][0]), entry[0][1], entry[0][2], entry[1][0], entry[1][1], entry[1][2], entry[0][0], initial))
     mutations_and_indexes = set([(get_mutations_and_indexes(original, x[0]), x[1], x[2], x[3], x[4], x[5], translate_numbers_to_string(x[6]), translate_numbers_to_string(x[7])) for x in two_hop_all_translated])
     mutations_and_indexes = set([x for x in mutations_and_indexes if x[0]])
     mutations_indexes_and_fitness_changes = [(x, get_fitness_change(x)) for x in mutations_and_indexes]

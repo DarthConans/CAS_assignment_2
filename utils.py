@@ -3,7 +3,7 @@ import math
 
 from bindingcalculator import *
 
-AMINO_CHARS = ["1", "2", "3", "4"]
+NUCLEOTIDE_CHARS = ["1", "2", "3", "4"]
 
 translate_dict = {
     "G": "1",
@@ -82,42 +82,42 @@ def load_sequence(TRANSLATE_FLAG=True):
     with open("data/spike_protein_genes.txt", "r") as f:
         untranslated = f.read().replace(" ", "").replace("\n", "").strip().upper()
     if TRANSLATE_FLAG:
-        return tranlate_proteints_to_base_pairs(untranslated)
+        return tranlate_aas_to_base_pairs(untranslated)
     else:
         return untranslated
 
 
-def tranlate_proteints_to_base_pairs(proteins, translation_list=None):
+def tranlate_aas_to_base_pairs(aas, translation_list=None):
     if translation_list is None:
         translation_list = EQUIVALENT_SEQUENCES
     ret = []
-    for protein in proteins:
+    for aa in aas:
         found = 0
         for base_pair, prot in translation_list:
-            if prot == protein:
+            if prot == aa:
                 ret.append(list(base_pair)[0])
                 found = 1
         if not found:
-            raise ValueError(f"PROTEIN {protein} DIDN'T MATCH")
+            raise ValueError(f"AMINO ACID {aa} DIDN'T MATCH")
     return "".join(ret)
 
 
-def translate_base_pairs_to_proteins(base_pairs_to_translate, translation_list=None):
+def translate_base_pairs_to_aas(base_pairs_to_translate, translation_list=None):
     if translation_list is None:
         translation_list = EQUIVALENT_SEQUENCES
-    for base_pairs, prot in translation_list:
+    for base_pairs, aa in translation_list:
         if base_pairs_to_translate in base_pairs:
-            return prot
+            return aa
     raise ValueError(f"INVALID BASE PAIR SEQUENCE {base_pairs_to_translate} DIDN'T MATCH")
 
-def translate_amino_sequence_to_proteins(amino_sequence_to_translate, translation_list=None):
+def translate_codon_sequence_to_aas(codon_sequence_to_translate, translation_list=None):
     if translation_list is None:
         translation_list = EQUIVALENT_SEQUENCES
     ret = []
-    amino_string = str(amino_sequence_to_translate)
-    for i in range(0, len(amino_string), 3):
-        local_amino_sequence = amino_string[i:i+3]
-        ret.append(translate_base_pairs_to_proteins(local_amino_sequence, translation_list))
+    codon_string = str(codon_sequence_to_translate)
+    for i in range(0, len(codon_string), 3):
+        local_codon = codon_string[i:i+3]
+        ret.append(translate_base_pairs_to_aas(local_codon, translation_list))
     return "".join(ret)
 
 
@@ -146,7 +146,7 @@ def permute_coding_sequence(coding_sequence):
         before = coding_sequence[0:i]
         char = coding_sequence[i]
         after = coding_sequence[i + 1:]
-        for new_char in AMINO_CHARS:
+        for new_char in NUCLEOTIDE_CHARS:
             if new_char != char:
                 permutations.append(before + new_char + after)
     PERMUTATION_DICT[coding_sequence] = permutations
