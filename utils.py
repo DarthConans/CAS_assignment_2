@@ -316,7 +316,9 @@ binding = BindingCalculator()
 
 non_antigenic = set()
 
+anitgen_memo = {
 
+}
 def get_antigenically_neutral(neutral_tuples, offset=330):
     ret = []
     sites_have = set([neutral_tuple[1] + offset for neutral_tuple in neutral_tuples])
@@ -326,17 +328,27 @@ def get_antigenically_neutral(neutral_tuples, offset=330):
     done = 0
     for neutral_tuple in neutral_tuples:
         if len(neutral_tuple) == 2:
-            sites = {neutral_tuple[1] + offset}
+            sites = (neutral_tuple[1] + offset,)
         else:
-            sites = {neutral_tuple[1] + offset, neutral_tuple[2] + offset}
-        if len(sites - binding.sites) == 0:
-            antigentic_frame = binding.escape_per_site(sites)
-            if antigenic_neutral_function(antigentic_frame):
-                ret.append(neutral_tuple)
+            sites = (neutral_tuple[1] + offset, neutral_tuple[2] + offset)
+        if sites in anitgen_memo.keys():
+            truth = anitgen_memo[sites]
+        else:
+
+            truth = False
+            site_set = set()
+            for site in sites:
+                site_set.add(site)
+            if len(site_set - binding.sites) == 0:
+                antigentic_frame = binding.escape_per_site(sites)
+                truth = antigenic_neutral_function(antigentic_frame)
+            anitgen_memo[sites] = truth
+        if truth:
+            ret.append(neutral_tuple)
         done += 1
         if done % 1000 == 0:
             print(f"FINISHED {done} OUT OF {expected}")
-    return [rets[0] for rets in ret]
+    return [(rets[0], rets[1]) for rets in ret]
 
 def get_antigenically_non_neutral(neutral_tuples, offset=330):
     ret = []

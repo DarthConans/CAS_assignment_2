@@ -16,19 +16,27 @@ if __name__ == "__main__":
     l = int(load_sequence())
     assert len(str(l)) == 579
     neutrals_loaded = neutral_genomes_and_sites(l)
+    all_one_hop_sites = all_genomes_and_sites(l)
+    antgenically_neutral_1_hop_map = list(get_antigenically_neutral(all_one_hop_sites))
     neutrals = set(neutrals_loaded)
     neutral_2_hop_all = set()
     done = 0
-    to_do = len(neutrals)
-    neutrals_seq_only = set([x[0] for x in neutrals])
-    for l in neutrals:
+    to_do = len(antgenically_neutral_1_hop_map)
+    neutrals_seq_only = set([x[0] for x in antgenically_neutral_1_hop_map])
+    for l in antgenically_neutral_1_hop_map:
         to_neutrify = l[0]
         r = all_genomes_and_sites(to_neutrify)
-        this_round_unique = set([x[0] for x in r])
+        this_round_unique = set([x[0] for x in r if x[0] not in neutrals_seq_only])
         r = [(a[0], a[1], l[1]) for a in r if a[0] not in neutrals_seq_only]
-        neutral_2_hop_all.update(r)
+        t = []
+        for un in this_round_unique:
+            l = [x for x in r if x[0] == un]
+            t.append(l[0])
+
+        neutral_2_hop_all.update(t)
         done += 1
         print(f"I'VE DONE {done} OUT OF {to_do}")
+
 
 
     antigenically_neutral_2_hop_map = get_antigenically_neutral(neutral_2_hop_all)

@@ -139,11 +139,16 @@ if __name__ == "__main__":
     data_bak = data_bak.sort_values(by=["antigen difference"], axis=0, ascending=False)
     data_bak = data_bak[(data_bak["fitness change"] > 0)]
     data_bak = data_bak[["mutation 1 site", "mutation 2 site", "old amino", "new amino", "fitness change", "antigen difference"]]
+    for col in ["fitness change", "antigen difference"]:
+        data_bak[col] = data_bak[col].apply(lambda x: round(x, 2))
+    for col in ["mutation 1 site", "mutation 2 site"]:
+        data_bak[col] = data_bak[col] + 1
     data_bak = data_bak.drop_duplicates()
     data_bak = data_bak.head(20)
     data_bak.to_csv("results/top_antigen_with_fitness_change.csv", index=False)
     # Down select
     data = data[["site", "fitness change", "antigen difference", "new sequence"]]
+
     # Select where anitgen difference above average
     mean = data["antigen difference"].mean()
     # Select only positive fitness change
